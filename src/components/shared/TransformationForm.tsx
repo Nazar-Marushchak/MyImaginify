@@ -32,12 +32,12 @@ import {
 import { CustomField } from "./CustomField";
 import { useEffect, useState, useTransition } from "react";
 import { AspectRatioKey, debounce, deepMergeObjects } from "@/lib/utils";
-import { updateCredits } from "@/lib/actions/user.actions";
-import { useRouter } from "next/navigation";
 import MediaUploader from "./MediaUploader";
 import TransformedImage from "./TransformedImage";
+import { updateCredits } from "@/lib/actions/user.actions";
 import { getCldImageUrl } from "next-cloudinary";
 import { addImage, updateImage } from "@/lib/actions/image.actions";
+import { useRouter } from "next/navigation";
 import { InsufficientCreditsModal } from "./InsufficientCreditsModal";
 
 export const formSchema = z.object({
@@ -57,7 +57,6 @@ const TransformationForm = ({
   config = null,
 }: TransformationFormProps) => {
   const transformationType = transformationTypes[type];
-
   const [image, setImage] = useState(data);
   const [newTransformation, setNewTransformation] =
     useState<Transformations | null>(null);
@@ -66,8 +65,6 @@ const TransformationForm = ({
   const [transformationConfig, setTransformationConfig] = useState(config);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
-
-  console.log(action);
 
   const initialValues =
     data && action === "Update"
@@ -102,7 +99,7 @@ const TransformationForm = ({
         title: values.title,
         publicId: image?.publicId,
         transformationType: type,
-        width: image.width,
+        width: image?.width,
         height: image?.height,
         config: transformationConfig,
         secureURL: image?.secureURL,
@@ -138,13 +135,12 @@ const TransformationForm = ({
               _id: data._id,
             },
             userId,
-            path: "/transformations/${data._id",
+            path: `/transformations/${data._id}`,
           });
 
           if (updatedImage) {
             router.push(`/transformations/${updatedImage._id}`);
           }
-          console.log("Update 2222");
         } catch (error) {
           console.log(error);
         }
@@ -187,10 +183,11 @@ const TransformationForm = ({
         },
       }));
     }, 1000)();
+
     return onChangeField(value);
   };
 
-  const onTransformHandler = () => {
+  const onTransformHandler = async () => {
     setIsTransforming(true);
 
     setTransformationConfig(
@@ -255,10 +252,10 @@ const TransformationForm = ({
             <CustomField
               control={form.control}
               name="prompt"
-              className="w-full"
               formLabel={
                 type === "remove" ? "Object to remove" : "Object to recolor"
               }
+              className="w-full"
               render={({ field }) => (
                 <Input
                   value={field.value}
@@ -274,6 +271,29 @@ const TransformationForm = ({
                 />
               )}
             />
+
+            {type === "recolor" && (
+              <CustomField
+                control={form.control}
+                name="color"
+                formLabel="Replacement Color"
+                className="w-full"
+                render={({ field }) => (
+                  <Input
+                    value={field.value}
+                    className="input-field"
+                    onChange={(e) =>
+                      onInputChangeHandler(
+                        "color",
+                        e.target.value,
+                        "recolor",
+                        field.onChange
+                      )
+                    }
+                  />
+                )}
+              />
+            )}
           </div>
         )}
 
@@ -303,28 +323,6 @@ const TransformationForm = ({
           />
         </div>
 
-        {type === "recolor" && (
-          <CustomField
-            control={form.control}
-            name="color"
-            className="w-full"
-            formLabel="Replacement Color"
-            render={({ field }) => (
-              <Input
-                value={field.value}
-                className="input-field"
-                onChange={(e) =>
-                  onInputChangeHandler(
-                    "color",
-                    e.target.value,
-                    "recolor",
-                    field.onChange
-                  )
-                }
-              />
-            )}
-          />
-        )}
         <div className="flex flex-col gap-4">
           <Button
             type="button"
@@ -334,7 +332,6 @@ const TransformationForm = ({
           >
             {isTransforming ? "Transforming..." : "Apply Transformation"}
           </Button>
-
           <Button
             type="submit"
             className="submit-button capitalize"
