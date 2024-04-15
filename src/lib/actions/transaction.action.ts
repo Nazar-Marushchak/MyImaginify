@@ -2,9 +2,10 @@
 
 import { redirect } from "next/navigation";
 import Stripe from "stripe";
+import { handleError } from "../utils";
 import { connectToDatabase } from "../database/mongoose";
-import Transaction from "../database/models/transaction.module";
 import { updateCredits } from "./user.actions";
+import Transaction from "../database/models/transaction.module";
 
 export async function checkoutCredits(transaction: CheckoutTransactionParams) {
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
@@ -50,5 +51,7 @@ export async function createTransaction(transaction: CreateTransactionParams) {
     await updateCredits(transaction.buyerId, transaction.credits);
 
     return JSON.parse(JSON.stringify(newTransaction));
-  } catch (error) {}
+  } catch (error) {
+    handleError(error);
+  }
 }
