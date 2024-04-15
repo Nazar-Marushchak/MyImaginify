@@ -3,12 +3,12 @@ import Link from "next/link";
 import Image from "next/image";
 import React from "react";
 import { Collection } from "@/components/shared/Collection";
-import { gettAllImages } from "@/lib/actions/image.actions";
+import { getAllImages } from "@/lib/actions/image.actions";
 
 const Home = async ({ searchParams }: SearchParamProps) => {
   const page = Number(searchParams?.page) || 1;
   const searchQuery = (searchParams?.query as string) || "";
-  const images = await gettAllImages({ page, searchQuery });
+  const images = await getAllImages({ page, searchQuery });
 
   return (
     <>
